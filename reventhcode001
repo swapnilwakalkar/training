@@ -1,0 +1,512 @@
+
+UN : revanth1@lancesoft.com
+PWD: password1234
+ST : UunRLs5PDZSYZ5MvTH1Tb6FFU
+
+---------------------------------
+lalith.kishore51@gmail.com
+pranav.t@lancesoft.in
+---------------------------------
+
+M - Modal : Schema Builer
+V - View : Visualforce, HTML, Components
+C - Controller : Apex Classes, JS
+
+SDLC
+	BRD
+	Scope
+		Phases
+			Stories
+	
+	Sprint 2 weeks
+		
+		6 months
+			Intial discussions
+			Analysing
+			Development
+			Unit Test
+			QA
+			UAT
+			Approval
+	Go Live
+		Pre-Deployment Steps
+		Post-Deployment Steps
+	EndUser Trainings
+	Support
+		P1
+		P2
+		P3
+	
+	Agile methodologies
+	Waterfall methodologies
+	
+--------------------------------------------	
+CRM
+	Campaign
+	Lead
+		Account
+		Contacts
+		Opportunity
+	
+	CPQ	
+	
+	Case
+	Omni
+	
+	Community Portals
+		Customer
+		Partner
+	
+	Reports & Dashboards
+	User Management
+	Profiles
+	Roles
+	OWD
+	
+	Custom Object
+	Custom Fields
+	
+	Student - Student__c
+		Id
+		Name
+		createdDate
+		email - Columns
+		Phone - Columns
+		Department - Columns (Lookup)
+	
+	Deployment Process
+		JIRA
+		Bitbucket
+			version control
+		
+	Admin Setup
+		Limitations
+		User setup
+			Role
+			Security
+			
+		Schema
+			Objects
+		Reporting
+		
+		
+		Metadata
+			P - Profile
+			P - Permission Sets
+		Data - OWD
+			S - Sharing settings
+			S - Sharing Rules
+			
+		Data Management
+			Import Wizard
+			Export Wizard
+			Data Loader
+			
+		Reports & Dashboards
+		
+		
+		OOPs
+		
+		DataTypes
+			Primitive - String, Integer, Decimal, Boolean, Date,.....
+			sObject - Account, Contact, Student__c, Department__c,......
+		Collection
+			List<dataTypes>
+			Set<dataTypes>
+			Map<dataTypes, dataTypes>
+			
+		sObject (Standard / Custom) (Standard Controller)
+			Table
+			Fields
+			records
+			relationships
+			....
+
+		Apex Classes (Controller / Custom Controller)
+			variable
+			
+			Properties
+			Constructors	
+			
+			Methods
+				getter, setter
+				Parameters	
+
+			Filters
+				If Conditions
+				Where clause in SOQL
+				Limit in SOQL
+			Iterations
+				for
+				do while
+				case
+
+		
+		standardController - Account / Student__c
+			extensions - ClassA, ClassB, ClassC
+			
+		Controller - ClassA
+			extensions - ClassB, ClassC
+		
+		SOQL : Salesforce Object Query Language
+
+			select id, name from Account
+			
+			select id, name, ( select id, name from contacts ) from Account
+			select id, name, ( select id, name from contacts ), ( select id, name from opportunities ), ( select id, name from cases ) from Account
+			Error:
+				select id, name, ( select id, name, ( select id, name from cases ) from contacts ) from Account
+			---------------------------------------
+			Select fields from sObject
+			Return Type is List.
+				Select id,name,.... from Account
+				select id,casenumber,... from Case
+				Select id,name,isActive__c,Gender__c,.... from Student__c
+				
+				[ SELECT Id, Name, isActive__c, Fee_To_Be_Collected__c, DOJ__c, Email__c, Geo_Location__Latitude__s, Geo_Location__Longitude__s, Geo_Location__c, Gender__c, Hobbies__c, Regd_No__c, Year__c, Enrollment_No__c, Department__c, Admission_Year__c, x10th_Score_in__c, State__c, City__c, Status__c, First_Year_Score_in__c, Phone__c, RecordTypeId FROM Student__c ];
+		
+				WHERE Clause, LIKE, ORDER BY, ASC, DESC, LIMIT, OR, AND, IN, ALL ROWS, OFFSET
+				=, ==,  
+				Parent To Child SOQL
+				Child To Parent SOQL
+				
+				
+	Flows
+		Screen Flow
+		Autolaunched Flow
+		Triggered Flows
+			Record-Triggered
+			Schedule-Triggered				
+			Platform Event Triggered
+				. It is a event driven architecture.
+				. It enable apps to communicate within Salesforce or even outside of Salesforce.
+				. Whenever there is a change happened by an external system, Salesforce captures using the platform event.
+				. It is of Pub-Sub model and works directly with a message bus which handles the queue of incoming events and processes, listening for them.
+				. This is built in real time integration patterns in the Salesforce platform which helps to reduce the point-to-point integration.
+
+				Considerations
+					. If platform event-triggered flows, paused flow interviews and processes are subscribed to the same platform event, we can't guarantee  which one processes each event message first.
+					. A flow can receive a batch of event messages at once, upto a max of 2000 event messages.
+					. Debug logs for platform event-triggered flows and resumed flow interviews appear under the Automated Process User.		
+			Ex:
+				Platform_Evt1__e ev = new Platform_Evt1__e();
+					ev.Message__c = 'Email has been changed.';
+					ev.Customer_Id__c = 'a002w00000XdLscAAF';
+				EventBus.publish(ev);
+		
+		Exception Handling
+			try {
+				// Perform some operation that 
+				//   might cause an exception.
+			} catch(queryException e){
+            
+			} catch(system.dmlException e){
+				
+			} catch(calloutException e){
+				
+			} catch(Exception e) {
+				// Generic exception handling code here.
+			} finally {
+				// Perform some clean up.
+			}
+			
+			Eg:
+				
+				Parents__c st = new Parents__c();
+				insert st;
+
+
+		Triggers - DML (Before/After of a DML)
+			Events
+				Before Insert
+				Before Update
+				Before Delete
+				
+				After Insert
+				After Update
+				After Delete
+				After Undelete
+			Context Variables
+				trigger.isBefore
+				trigger.isAfter
+				trigger.isInsert
+				trigger.isUpdate
+				trigger.isDelete
+				trigger.isUndelete
+				trigger.isExecuting
+				
+				trigger.New - Value => record
+				trigger.newMap - Key, Value => id, record
+				trigger.old - Value => record
+				trigger.oldMap - Key, Value => id, record
+				trigger.size
+				
+			Email 	
+		Exception Handling
+		SelectOptions
+		DML
+		Pagereferences/navigations
+		Order of invocations in apex, vf
+				
+		Wrapper classes
+		Integrations
+			architecture
+			patterns
+			Callouts & CallIns
+				Apex REST annotations:
+					@RestResource(urlMapping=’/yourUrl’)
+					@HttpDelete
+					@HttpGet
+					@HttpPatch
+					@HttpPost
+					@HttpPut
+		Annotations
+			@AuraEnabled
+			@Deprecated
+			@Future
+			@InvocableMethod
+			@InvocableVariable
+			@IsTest
+			@ReadOnly
+			@RemoteAction
+			@TestSetup
+			@TestVisible
+			
+		Test Classes
+		
+
+
+	LWC
+		Decorators
+			@api - Publicly available and make property reactive
+			@track - Privately available and make property reactive
+			@wire - To read SFDC data. 
+					Makes property reactive
+					reRenders the components whenever there is change
+		Lifecycle Hooks
+			constructor
+			connectedCallback
+			disconnectedCallback
+			render
+			renderedCallback
+			errorCallback
+			
+			
+		
+=Left Topics==========================================================================
+
+				
+-----------------------------------------
+
+SELECT Id, Name, Amount, StageName, Probability FROM Opportunity  where Name LIKE  '%a%'			
+SELECT Id, Name, Amount, StageName, Probability FROM Opportunity  where Name LIKE  'g%'
+
+-----------------------------------------
+		
+HTML Table 
+	<table>
+        <tr>
+            <td>
+            1
+            </td>
+            <td>
+            2
+            </td>
+            <td>
+            3
+            </td>
+        </tr>
+        <tr>
+            <td>
+            4
+            </td>
+            <td>
+            5
+            </td>
+            <td>
+            6
+            </td>
+        </tr>
+    </table>
+
+=== Email =============================================================
+	//https://gist.github.com/djuds/4aa3c0aa478afbd044da3bc6181905f7
+	
+	// Now create a new single email message object
+	// that will send out a single email to the addresses in the To, CC & BCC list.
+	Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+
+	// Strings to hold the email addresses to which you are sending the email.
+	String[] toAddresses = new String[] {'david.judkins@rightstar.com'}; 
+	String[] ccAddresses = new String[] {'djudkins@rightstar.com'};
+	  
+
+	// Assign the addresses for the To and CC lists to the mail object.
+	mail.setToAddresses(toAddresses);
+	mail.setCcAddresses(ccAddresses);
+
+	// Specify the address used when the recipients reply to the email. 
+	mail.setReplyTo('testing@rf.com');
+
+	// Specify the name used as the display name.
+	mail.setSenderDisplayName('RF Support');
+
+	// Specify the subject line for your email address.
+	mail.setSubject('New Case Created : ' + case.Id);
+
+	// Set to True if you want to BCC yourself on the email.
+	mail.setBccSender(false);
+
+	// Optionally append the salesforce.com email signature to the email.
+	// The email address of the user executing the Apex Code will be used.
+	mail.setUseSignature(false);
+
+	// Specify the text content of the email.
+	mail.setPlainTextBody('Your Case: ' + case.Id +' has been created.');
+
+	mail.setHtmlBody('Your case:<b> ' + case.Id +' </b>has been created.<p>'+
+		 'To view your case <a href=https://***yourInstance***.salesforce.com/'+case.Id+'>click here.</a>');
+
+	// Send the email you have created.
+	Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+	
+==== Trigger =================
+	trigger accountTrigger on Account (Before Insert, Before Update, After Insert, After Update ) {
+    
+    set<Id> accIds = new set<Id>();
+    Map<string,string> chngValues = new Map<string,string>();
+    
+    Map<id,Map<string,string>> chngValuesMap = new Map<id, Map<string,string>>();
+    
+    List<String> toAddresses = new List<String>();
+    List<String> ccAddresses = new List<String>();
+    //List<String> ccAddresses = new List<String>{'jesanth.training@gmail.com'};
+    
+    String htmlBodyStr;
+    
+    for(Account acc : trigger.new){
+        accIds.add(acc.id);
+    
+        Account oldAcc = Trigger.oldMap.get(acc.ID);
+            if( acc.SLA__c != oldAcc.SLA__c ) {
+                chngValues.put( oldAcc.SLA__c, acc.SLA__c );
+            }
+            if( acc.name != oldAcc.name ) {
+                chngValues.put( oldAcc.name, acc.name );
+            }
+    }
+    
+    /*
+    for( contact con : [ select id, Email from contact where accountid IN: accIds AND Primary_Contact__c = true ]){
+        toAddresses.add(con.email);
+    }
+    */
+    
+    for( contact con : [ select id, Email, Primary_Contact__c from contact where accountid IN: accIds ]){
+        if( con.Primary_Contact__c == true)
+            toAddresses.add(con.email);
+        else
+            ccAddresses.add(con.email);
+    }
+    
+    system.debug('======== email To = : '+toAddresses);
+    system.debug('======== email Cc = : '+ccAddresses);
+    
+    for(string s : chngValues.keyset()){
+        htmlBodyStr = 'Your Account:<b> GenePoint </b>has been updated.<p> <br/>';
+        htmlBodyStr += 'The value is changed from <b>'+s+'</b> to <b>'+chngValues.get(s)+'</b>.';
+    }
+    
+                   
+    for(Account acc : trigger.new){
+        
+        if(trigger.isBefore){
+                    if(trigger.isInsert){
+                        
+                    }
+                    if(trigger.isUpdate){
+                        
+                    }
+        }
+        if(trigger.isAfter){
+                    if(trigger.isInsert){
+                
+                    }
+                    if(trigger.isUpdate){
+                    
+                        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+                            
+                                    mail.setToAddresses(toAddresses);
+                                    mail.setCcAddresses(ccAddresses);
+                                    mail.setReplyTo('testing@rf.com');
+                                    mail.setSenderDisplayName('RF Support');
+                                    mail.setSubject('Your Account Updated.');
+                                    mail.setBccSender(false);
+                                    mail.setUseSignature(false);
+                                    mail.setPlainTextBody('Your Account has been updated.');
+                                    mail.setHtmlBody(htmlBodyStr);
+                            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+                        
+                        //system.debug('== Trigger New =='+accList );
+                        //system.debug('== Trigger NewMap =='+accMap );
+                    
+                    /*
+                            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+                            
+                            List<String> toAddresses = new List<String> {'david.judkins@test.com','jesanth.training@gmail.com'}; 
+                            String[] ccAddresses = new String[] {'djudkins@test.com'};
+                            
+                                    mail.setToAddresses(toAddresses);
+                                    mail.setCcAddresses(ccAddresses);
+                                    mail.setReplyTo('testing@rf.com');
+                                    mail.setSenderDisplayName('RF Support');
+                                    mail.setSubject('Your Account Updated.');
+                                    mail.setBccSender(false);
+                                    mail.setUseSignature(false);
+                                    mail.setPlainTextBody('Your Account has been updated.');
+                                    mail.setHtmlBody('Your Account:<b> GenePoint </b>has been updated.<p>');
+                            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+                      */      
+                            
+                    }
+        }
+    }
+}
+	
+==Response from POSTMAN =================================
+{
+    "access_token": "00D2w00000IPoHA!AQ4AQPX1Ia9_Qsz_3DcsvAdAfePFX4gt2EWqma3G0Ns4pyqc.5cGfuc3JCUk1SS5b1P4GBY_yv5I5JG4SWiiVJjjAOo8Xelx",
+    "instance_url": "https://lancesoft9-dev-ed.develop.my.salesforce.com",
+    "id": "https://login.salesforce.com/id/00D2w00000IPoHAEA1/0052w00000BBZXWAA5",
+    "token_type": "Bearer",
+    "issued_at": "1677137746970",
+    "signature": "qRVz+GfM4xK4G6P7GLpXqdCRcJnPSIdzwWE7lZpz16Q="
+}
+
+=== LWC =========================================
+--- Infinte Loading -----------------------
+
+<template>
+    <!-- create card -->
+    <lightning-card variant="Narrow" title="LWC Datatable Infinite/Lazy Loading" icon-name="standard:recipe">
+        <div class="slds-var-p-around_small" style="height: 400px;">
+            <lightning-datatable key-field="Id" data={data} columns={columns} load-more-offset="20"
+                onloadmore={handleLoadMore} enable-infinite-loading hide-checkbox-column show-row-number-column>
+            </lightning-datatable>
+        </div>
+    </lightning-card> 
+         
+ </template>
+ 
+ 
+ 
+
+==IMP URLs====================
+
+https://apipheny.io/free-api/
+
+	https://trailhead.salesforce.com/content/learn/modules/api_basics
+	https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_endpoints.htm&type=5
+	https://help.salesforce.com/s/articleView?id=sf.connected_app_create_api_integration.htm&type=5
+	Test Classes
+		https://jayakrishnasfdc.wordpress.com/2021/01/02/apex-test-class-examples-for-web-services/
