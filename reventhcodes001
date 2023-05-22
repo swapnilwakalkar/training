@@ -1,0 +1,985 @@
+
+apex class
+
+
+public with sharing class lanceSoft_02_Cntrlr {​​​​​​
+    public lanceSoft_02_Cntrlr() {​​​​​​
+    }​​​​​​
+/*
+    @AuraEnabled (cacheable=true)
+    public static List<Account> fetchAllAccounts(){​​​​​​
+        string query = 'SELECT Id, Name, OwnerId, Type  FROM Account ' ; //WHERE OwnerId=: userId
+        system.debug('=========Query==== : '+query);
+        return Database.query(query);
+    }​​​​​​
+*/
+    
+    @AuraEnabled (cacheable=true)
+    public static List<Account> fetchAccounts( string accTypeSearchKey, string accNameSearchKey ){​​​​​​
+        //string strgkeyword = '%'+prodsearchKey+'%';
+        string query = 'SELECT Id, Name, OwnerId, Type  FROM Account ' ; //WHERE OwnerId=: userId
+        
+        If(accTypeSearchKey == 'All' && !String.isEmpty(accNameSearchKey)){​​​​​​
+            query += ' WHERE Name LIKE \'%'+accNameSearchKey+'%\'';
+        }​​​​​​
+        If(accTypeSearchKey != 'All' && !String.isEmpty(accNameSearchKey)){​​​​​​
+            query += ' WHERE Type = \''+ accTypeSearchKey+'\''+' AND Name LIKE \'%'+accNameSearchKey+'%\'';
+        }​​​​​​
+        If(accTypeSearchKey != 'All' && String.isEmpty(accNameSearchKey)){​​​​​​
+            query += ' WHERE Type = \''+ accTypeSearchKey+'\'';
+        }​​​​​​
+        
+        system.debug('=========Query==== : '+query);
+        return Database.query(query);
+    }​​​​​​
+    
+}​​​​​​
+
+
+
+[1:17 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="All Accounts" icon-name="custom:custom14">
+        
+        <lightning-layout>
+            <lightning-layout-item flexibility="auto">
+                <div class="slds-var-p-around_large">
+                    <template if:true ={​​​​​​loading}​​​​​​>
+                        <lightning-spinner alternative-text="Loading" variant="brand"></lightning-spinner>
+                    </template>
+                    <template if:true={​​​​​​AccTypePickValues}​​​​​​>
+                        <lightning-combobox name="Type" label="Account Type" value={​​​​​​accTypeSelValue}​​​​​​
+                                options={​​​​​​AccTypePickValues}​​​​​​ onchange={​​​​​​handleAccTypeKeyChange}​​​​​​ >
+                        </lightning-combobox>
+                    </template>
+                </div>
+            </lightning-layout-item>
+            <lightning-layout-item flexibility="auto">
+                <div class="slds-var-p-around_large">
+                    <lightning-input type="text" name="nameinput" label="Account Search" placeholder="Type to Search.." onchange={​​​​​​handleAccNameKeyChange}​​​​​​></lightning-input>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+        <br/>
+        <div class="slds-align_absolute-center">
+            <lightning-button label="Search" variant="brand" onclick={​​​​​​searchRecord}​​​​​​></lightning-button> &nbsp;&nbsp;
+            <lightning-button label="Clear" variant="neutral" onclick={​​​​​​handleClear}​​​​​​></lightning-button>
+        </div>
+        <br/>
+
+
+
+
+
+
+        <div class="slds-scrollable" style="height:400px;">
+            <div class="slds-box slds-var-p-around_small">
+                
+                <template if:true={​​​​​​allRecords}​​​​​​ >
+                    <lightning-datatable
+                        key-field="id"
+                        data={​​​​​​allRecords}​​​​​​
+                        columns={​​​​​​columns}​​​​​​>
+                    </lightning-datatable>
+                    
+                </template>
+            </div>
+        </div>
+        
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:17 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, wire }​​​​​​ from 'lwc';
+import {​​​​​​ ShowToastEvent }​​​​​​ from 'lightning/platformShowToastEvent';
+import Account_OBJECT from '@salesforce/schema/Account';
+import TYPE_FIELD from '@salesforce/schema/Account.Type';
+import {​​​​​​ getObjectInfo }​​​​​​ from 'lightning/uiObjectInfoApi';
+import {​​​​​​ getPicklistValues }​​​​​​ from 'lightning/uiObjectInfoApi';
+import fetchAccs from '@salesforce/apex/lanceSoft_02_Cntrlr.fetchAccounts';
+const columns = [
+    //{​​​​​​ label: 'ID', fieldName: 'Id' }​​​​​​,
+    {​​​​​​ label: 'Name', fieldName: 'Name' }​​​​​​,
+    {​​​​​​ label: 'Type', fieldName: 'Type' }​​​​​​,
+];
+export default class LanceSoft_02 extends LightningElement {​​​​​​
+    @track allRecords = [];
+    @track columns = columns;
+    @track accTypeSelValue = '';
+    @track accNameValue = '';
+    @track accTypeSelValue = '';
+    @track AccTypePickValues = [];
+    connectedCallback(){​​​​​​
+        this.fetchAccounts();
+    }​​​​​​
+    fetchAccounts(){​​​​​​
+        fetchAccs()
+            .then(result => {​​​​​​
+                this.allRecords = result;
+                this.showToastMessages('success','All Accounts!','Successfully fetched!');
+            }​​​​​​)
+            .catch(error => {​​​​​​
+                this.showToastMessages('error','Something went wrong!','Please contact your administrator. ');
+                console.log('Error in searchFields : '+ JSON.stringify(error));
+            }​​​​​​);
+    }​​​​​​
+    @wire(getObjectInfo, {​​​​​​ objectApiName: Account_OBJECT }​​​​​​)
+    objectInfo;
+    @wire(getPicklistValues, {​​​​​​ recordTypeId: '$objectInfo.data.defaultRecordTypeId', fieldApiName: TYPE_FIELD}​​​​​​)
+    AccTypePicklistValues({​​​​​​ data, error }​​​​​​) {​​​​​​
+        
+        if(data) {​​​​​​
+            var conts = data.values;
+            let items = [];
+            items = [{​​​​​​ label : 'All', value : 'All' }​​​​​​];
+            for(var key in conts){​​​​​​
+                items = [...items,{​​​​​​
+                            label: conts[key].label,
+                            value: conts[key].value,
+                            }​​​​​​
+                        ];
+            }​​​​​​
+            this.AccTypePickValues = items;
+            this.accTypeSelValue = this.AccTypePickValues[0].value;
+            this.loading = false;
+            //this.showToastMessages('Info','Success..!','Account Type Loaded..');
+        }​​​​​​ else if (error) {​​​​​​
+            this.error = error;
+            this.loading = false;
+            this.showToastMessages('error','Please contact your administrator. ','Something went wrong while fetching Acc Type!');
+        }​​​​​​
+    }​​​​​​;
+    handleAccTypeKeyChange(event){​​​​​​
+        this.accTypeSelValue = event.target.value;
+        //alert('====Account Type==== : '+this.accTypeSelValue);
+    }​​​​​​
+    handleAccNameKeyChange(event){​​​​​​
+        this.accNameValue = event.target.value;
+        //alert('====Account Name==== : '+this.accNameValue);
+    }​​​​​​
+    
+    @wire(fetchAccs,{​​​​​​ accTypeSearchKey: '$accTypeSelValue', accNameSearchKey: '$accNameValue', }​​​​​​)
+    accData({​​​​​​ data, error }​​​​​​) {​​​​​​
+        if(data) {​​​​​​
+            this.allRecords = data;
+            this.loading = false;
+            this.error = undefined;
+            //this.showToastMessages('Success','Success..!','Stock saved. ');
+        }​​​​​​ else if (error) {​​​​​​
+            console.log('=============error ===== : '+ JSON.stringify(error));
+            this.error = error;
+            this.loading = false;
+            this.showToastMessages('error','Please contact your administrator. ','Something went wrong while fetching Acc Data!'+JSON.stringify(error));
+        }​​​​​​
+    }​​​​​​
+
+
+
+    showToastMessages(vrnt,titl,msg) {​​​​​​
+        const event = new ShowToastEvent({​​​​​​
+            title: titl,
+            message: msg,
+            variant: vrnt
+        }​​​​​​);
+        this.dispatchEvent(event);
+    }​​​​​​
+}​​​​​​
+
+
+
+
+
+<template>
+    <lightning-card title="All Accounts" icon-name="custom:custom14">
+       
+        <lightning-layout>
+            <lightning-layout-item flexibility="auto">
+                <div class="slds-var-p-around_large">
+                    <template if:true ={loading}>
+                        <lightning-spinner alternative-text="Loading" variant="brand"></lightning-spinner>
+                    </template>
+                    <template if:true={AccTypePickValues}>
+                        <lightning-combobox name="Type" label="Account Type" value={accTypeSelValue}
+                                options={AccTypePickValues} onchange={handleAccTypeKeyChange} >
+                        </lightning-combobox>
+                    </template>
+                </div>
+            </lightning-layout-item>
+            <lightning-layout-item flexibility="auto">
+                <div class="slds-var-p-around_large">
+                    <lightning-input type="text" name="nameinput" label="Account Search" placeholder="Type to Search.." onchange={handleAccNameKeyChange}></lightning-input>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+        <br/>
+        <div class="slds-align_absolute-center">
+            <lightning-button label="Search" variant="brand" onclick={searchRecord}></lightning-button> &nbsp;&nbsp;
+            <lightning-button label="Clear" variant="neutral" onclick={handleClear}></lightning-button>
+        </div>
+        <br/>
+
+
+
+
+
+
+        <div class="slds-scrollable" style="height:400px;">
+            <div class="slds-box slds-var-p-around_small">
+               
+                <template if:true={allRecords} >
+                    <lightning-datatable
+                        key-field="id"
+                        data={allRecords}
+                        columns={columns}>
+                    </lightning-datatable>
+                   
+                </template>
+            </div>
+        </div>
+       
+    </lightning-card>
+</template>
+
+
+[1:17 PM] Revanth (Guest)
+js file
+
+
+import {​​​​​​ LightningElement, track, wire }​​​​​​ from 'lwc';
+import {​​​​​​ ShowToastEvent }​​​​​​ from 'lightning/platformShowToastEvent';
+import Account_OBJECT from '@salesforce/schema/Account';
+import TYPE_FIELD from '@salesforce/schema/Account.Type';
+import {​​​​​​ getObjectInfo }​​​​​​ from 'lightning/uiObjectInfoApi';
+import {​​​​​​ getPicklistValues }​​​​​​ from 'lightning/uiObjectInfoApi';
+import fetchAccs from '@salesforce/apex/lanceSoft_02_Cntrlr.fetchAccounts';
+const columns = [
+    //{​​​​​​ label: 'ID', fieldName: 'Id' }​​​​​​,
+    {​​​​​​ label: 'Name', fieldName: 'Name' }​​​​​​,
+    {​​​​​​ label: 'Type', fieldName: 'Type' }​​​​​​,
+];
+export default class LanceSoft_02 extends LightningElement {​​​​​​
+    @track allRecords = [];
+    @track columns = columns;
+    @track accTypeSelValue = '';
+    @track accNameValue = '';
+    @track accTypeSelValue = '';
+    @track AccTypePickValues = [];
+    connectedCallback(){​​​​​​
+        this.fetchAccounts();
+    }​​​​​​
+    fetchAccounts(){​​​​​​
+        fetchAccs()
+            .then(result => {​​​​​​
+                this.allRecords = result;
+                this.showToastMessages('success','All Accounts!','Successfully fetched!');
+            }​​​​​​)
+            .catch(error => {​​​​​​
+                this.showToastMessages('error','Something went wrong!','Please contact your administrator. ');
+                console.log('Error in searchFields : '+ JSON.stringify(error));
+            }​​​​​​);
+    }​​​​​​
+    @wire(getObjectInfo, {​​​​​​ objectApiName: Account_OBJECT }​​​​​​)
+    objectInfo;
+    @wire(getPicklistValues, {​​​​​​ recordTypeId: '$objectInfo.data.defaultRecordTypeId', fieldApiName: TYPE_FIELD}​​​​​​)
+    AccTypePicklistValues({​​​​​​ data, error }​​​​​​) {​​​​​​
+        
+        if(data) {​​​​​​
+
+          var conts = data.values;
+            let items = [];
+            items = [{​​​​​​ label : 'All', value : 'All' }​​​​​​];
+            for(var key in conts){​​​​​​
+                items = [...items,{​​​​​​
+                            label: conts[key].label,
+                            value: conts[key].value,
+                            }​​​​​​
+                        ];
+            }​​​​​​
+            this.AccTypePickValues = items;
+            this.accTypeSelValue = this.AccTypePickValues[0].value;
+            this.loading = false;
+            //this.showToastMessages('Info','Success..!','Account Type Loaded..');
+        }​​​​​​ else if (error) {​​​​​​
+            this.error = error;
+            this.loading = false;
+            this.showToastMessages('error','Please contact your administrator. ','Something went wrong while fetching Acc Type!');
+        }​​​​​​
+    }​​​​​​;
+    handleAccTypeKeyChange(event){​​​​​​
+        this.accTypeSelValue = event.target.value;
+        //alert('====Account Type==== : '+this.accTypeSelValue);
+    }​​​​​​
+    handleAccNameKeyChange(event){​​​​​​
+        this.accNameValue = event.target.value;
+        //alert('====Account Name==== : '+this.accNameValue);
+    }​​​​​​
+    
+    @wire(fetchAccs,{​​​​​​ accTypeSearchKey: '$accTypeSelValue', accNameSearchKey: '$accNameValue', }​​​​​​)
+    accData({​​​​​​ data, error }​​​​​​) {​​​​​​
+        if(data) {​​​​​​
+            this.allRecords = data;
+            this.loading = false;
+            this.error = undefined;
+            //this.showToastMessages('Success','Success..!','Stock saved. ');
+        }​​​​​​ else if (error) {​​​​​​
+            console.log('=============error ===== : '+ JSON.stringify(error));
+            this.error = error;
+            this.loading = false;
+            this.showToastMessages('error','Please contact your administrator. ','Something went wrong while fetching Acc Data!'+JSON.stringify(error));
+        }​​​​​​
+    }​​​​​​
+
+
+
+    showToastMessages(vrnt,titl,msg) {​​​​​​
+        const event = new ShowToastEvent({​​​​​​
+            title: titl,
+            message: msg,
+            variant: vrnt
+        }​​​​​​);
+        this.dispatchEvent(event);
+    }​​​​​​
+}​​​​​​
+
+
+
+
+
+
+[1:17 PM] Revanth (Guest)
+
+Meta data file.
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+</LightningComponentBundle>
+
+
+
+
+
+day 2
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Parent Component" icon-name="custom:custom14">
+        
+        <template if:true ={​​​​​​isParentToChild}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <p>Hello, {​​​​​​parentVar}​​​​​​!</p>
+                <lightning-input label="Name" value={​​​​​​parentVar}​​​​​​ onchange={​​​​​​changeHandler}​​​​​​></lightning-input>
+                <c-Lance-Soft-_-04-_-Child from-parent-var={​​​​​​parentVar}​​​​​​ fetch-id-from-parent={​​​​​​recordId}​​​​​​ fetch-object-api-name={​​​​​​objectApiName}​​​​​​></c-Lance-Soft-_-04-_-Child>
+            </div>
+        </template>
+        <template if:true ={​​​​​​isChildToParent}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <lightning-progress-bar value={​​​​​​progVal}​​​​​​ size="large"></lightning-progress-bar>
+                <c-Lance-Soft-_-04-_-Child onselectedprogvalue={​​​​​​handleProgressVal}​​​​​​></c-Lance-Soft-_-04-_-Child>   
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_03_Parent extends LightningElement {​​​​​​
+    @track parentVar;
+    @track progVal = 10;
+    isParentToChild;
+    isChildToParent;
+    connectedCallback(){​​​​​​
+        if( this.selectType == 'ParentToChild' ){​​​​​​
+            this.isParentToChild = true;
+            this.isChildToParent = false;
+        }​​​​​​
+        if( this.selectType == 'ChildToParent' ){​​​​​​
+            this.isParentToChild = false;
+            this.isChildToParent = true;
+        }​​​​​​
+    }​​​​​​
+    changeHandler(event) {​​​​​​
+        this.parentVar = event.target.value;
+    }​​​​​​
+    handleProgressVal(event){​​​​​​
+        this.progVal = event.detail;
+    }​​​​​​
+    @api selectType;
+    @api recordId;
+    @api objectApiName;
+}​​​​​​
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property label="Select Type" name="selectType" type="String" datasource="ParentToChild, ChildToParent"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+============
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Child Component" icon-name="custom:custom14">
+       <!--
+        <div class="slds-var-m-around_medium">
+          <p>Hello, {​​​​​​childVar}​​​​​​!</p>
+          <p>Hello, {​​​​​​fromParentVar}​​​​​​!</p>
+        </div>
+        ==========================================================
+        <div class="slds-var-m-around_medium">
+            <p>
+                <lightning-record-form object-api-name={​​​​​​fetchObjectApiName}​​​​​​ record-id={​​​​​​fetchIdFromParent}​​​​​​ layout-type="Compact">
+                </lightning-record-form>
+            </p>
+        </div>
+    -->
+        <lightning-input onchange={​​​​​​handleChange}​​​​​​ type="number" label="Enter Number in Child"></lightning-input>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_04_Child extends LightningElement {​​​​​​
+    @track childVar = 'Child Val';
+    @api fromParentVar = 'Parent Val';
+    @api fetchIdFromParent;
+    @api fetchObjectApiName;
+    @api progressVal;
+    handleChange(event){​​​​​​
+        this.progressVal = event.target.value;
+        // Prevents the anchor element from navigating to a URL.
+        event.preventDefault();
+        // Creates the event with the contact ID data.
+        const selectedEvent = new CustomEvent("selectedprogvalue", {​​​​​​ 
+            detail: this.progressVal 
+        }​​​​​​);
+        // Dispatches the event.
+        this.dispatchEvent(selectedEvent);
+    }​​​​​​
+}​​​​​​
+
+
+
+
+
+
+[1:29 PM] 
+
+
+
+
+Revanth (Guest) no longer has access to the chat.
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Parent Component" icon-name="custom:custom14">
+        
+        <template if:true ={​​​​​​isParentToChild}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <p>Hello, {​​​​​​parentVar}​​​​​​!</p>
+                <lightning-input label="Name" value={​​​​​​parentVar}​​​​​​ onchange={​​​​​​changeHandler}​​​​​​></lightning-input>
+                <c-Lance-Soft-_-04-_-Child from-parent-var={​​​​​​parentVar}​​​​​​ fetch-id-from-parent={​​​​​​recordId}​​​​​​ fetch-object-api-name={​​​​​​objectApiName}​​​​​​></c-Lance-Soft-_-04-_-Child>
+            </div>
+        </template>
+        <template if:true ={​​​​​​isChildToParent}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <lightning-progress-bar value={​​​​​​progVal}​​​​​​ size="large"></lightning-progress-bar>
+                <c-Lance-Soft-_-04-_-Child onselectedprogvalue={​​​​​​handleProgressVal}​​​​​​></c-Lance-Soft-_-04-_-Child>   
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_03_Parent extends LightningElement {​​​​​​
+    @track parentVar;
+    @track progVal = 10;
+    isParentToChild;
+    isChildToParent;
+    connectedCallback(){​​​​​​
+        if( this.selectType == 'ParentToChild' ){​​​​​​
+            this.isParentToChild = true;
+            this.isChildToParent = false;
+        }​​​​​​
+        if( this.selectType == 'ChildToParent' ){​​​​​​
+            this.isParentToChild = false;
+            this.isChildToParent = true;
+        }​​​​​​
+    }​​​​​​
+    changeHandler(event) {​​​​​​
+        this.parentVar = event.target.value;
+    }​​​​​​
+    handleProgressVal(event){​​​​​​
+        this.progVal = event.detail;
+    }​​​​​​
+    @api selectType;
+    @api recordId;
+    @api objectApiName;
+}​​​​​​
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property label="Select Type" name="selectType" type="String" datasource="ParentToChild, ChildToParent"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+============
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Child Component" icon-name="custom:custom14">
+       <!--
+        <div class="slds-var-m-around_medium">
+          <p>Hello, {​​​​​​childVar}​​​​​​!</p>
+          <p>Hello, {​​​​​​fromParentVar}​​​​​​!</p>
+        </div>
+        ==========================================================
+        <div class="slds-var-m-around_medium">
+            <p>
+                <lightning-record-form object-api-name={​​​​​​fetchObjectApiName}​​​​​​ record-id={​​​​​​fetchIdFromParent}​​​​​​ layout-type="Compact">
+                </lightning-record-form>
+            </p>
+        </div>
+    -->
+        <lightning-input onchange={​​​​​​handleChange}​​​​​​ type="number" label="Enter Number in Child"></lightning-input>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_04_Child extends LightningElement {​​​​​​
+    @track childVar = 'Child Val';
+    @api fromParentVar = 'Parent Val';
+    @api fetchIdFromParent;
+    @api fetchObjectApiName;
+    @api progressVal;
+    handleChange(event){​​​​​​
+        this.progressVal = event.target.value;
+        // Prevents the anchor element from navigating to a URL.
+        event.preventDefault();
+        // Creates the event with the contact ID data.
+        const selectedEvent = new CustomEvent("selectedprogvalue", {​​​​​​ 
+            detail: this.progressVal 
+        }​​​​​​);
+        // Dispatches the event.
+        this.dispatchEvent(selectedEvent);
+    }​​​​​​
+}​​​​​​
+
+
+
+
+
+
+[1:29 PM] 
+
+
+
+
+Revanth (Guest) no longer has access to the chat.
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Parent Component" icon-name="custom:custom14">
+        
+        <template if:true ={​​​​​​isParentToChild}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <p>Hello, {​​​​​​parentVar}​​​​​​!</p>
+                <lightning-input label="Name" value={​​​​​​parentVar}​​​​​​ onchange={​​​​​​changeHandler}​​​​​​></lightning-input>
+                <c-Lance-Soft-_-04-_-Child from-parent-var={​​​​​​parentVar}​​​​​​ fetch-id-from-parent={​​​​​​recordId}​​​​​​ fetch-object-api-name={​​​​​​objectApiName}​​​​​​></c-Lance-Soft-_-04-_-Child>
+            </div>
+        </template>
+        <template if:true ={​​​​​​isChildToParent}​​​​​​>
+            <div class="slds-var-m-around_medium">
+                <lightning-progress-bar value={​​​​​​progVal}​​​​​​ size="large"></lightning-progress-bar>
+                <c-Lance-Soft-_-04-_-Child onselectedprogvalue={​​​​​​handleProgressVal}​​​​​​></c-Lance-Soft-_-04-_-Child>   
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_03_Parent extends LightningElement {​​​​​​
+    @track parentVar;
+    @track progVal = 10;
+    isParentToChild;
+    isChildToParent;
+    connectedCallback(){​​​​​​
+        if( this.selectType == 'ParentToChild' ){​​​​​​
+            this.isParentToChild = true;
+            this.isChildToParent = false;
+        }​​​​​​
+        if( this.selectType == 'ChildToParent' ){​​​​​​
+            this.isParentToChild = false;
+            this.isChildToParent = true;
+        }​​​​​​
+    }​​​​​​
+    changeHandler(event) {​​​​​​
+        this.parentVar = event.target.value;
+    }​​​​​​
+    handleProgressVal(event){​​​​​​
+        this.progVal = event.detail;
+    }​​​​​​
+    @api selectType;
+    @api recordId;
+    @api objectApiName;
+}​​​​​​
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property label="Select Type" name="selectType" type="String" datasource="ParentToChild, ChildToParent"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+============
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Child Component" icon-name="custom:custom14">
+       <!--
+        <div class="slds-var-m-around_medium">
+          <p>Hello, {​​​​​​childVar}​​​​​​!</p>
+          <p>Hello, {​​​​​​fromParentVar}​​​​​​!</p>
+        </div>
+        ==========================================================
+        <div class="slds-var-m-around_medium">
+            <p>
+                <lightning-record-form object-api-name={​​​​​​fetchObjectApiName}​​​​​​ record-id={​​​​​​fetchIdFromParent}​​​​​​ layout-type="Compact">
+                </lightning-record-form>
+            </p>
+        </div>
+    -->
+        <lightning-input onchange={​​​​​​handleChange}​​​​​​ type="number" label="Enter Number in Child"></lightning-input>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_04_Child extends LightningElement {​​​​​​
+    @track childVar = 'Child Val';
+    @api fromParentVar = 'Parent Val';
+    @api fetchIdFromParent;
+    @api fetchObjectApiName;
+    @api progressVal;
+    handleChange(event){​​​​​​
+        this.progressVal = event.target.value;
+        // Prevents the anchor element from navigating to a URL.
+        event.preventDefault();
+        // Creates the event with the contact ID data.
+        const selectedEvent = new CustomEvent("selectedprogvalue", {​​​​​​ 
+            detail: this.progressVal 
+        }​​​​​​);
+        // Dispatches the event.
+        this.dispatchEvent(selectedEvent);
+    }​​​​​​
+}​​​​​​
+
+
+
+
+
+
+[1:29 PM] 
+
+
+
+
+Revanth (Guest) no longer has access to the chat.
+[1:09 PM] Revanth (Guest)
+
+
+
+<template>
+    <lightning-card title="Child Component" icon-name="custom:custom14">
+       <!--
+        <div class="slds-var-m-around_medium">
+          <p>Hello, {​​​​​​childVar}​​​​​​!</p>
+          <p>Hello, {​​​​​​fromParentVar}​​​​​​!</p>
+        </div>
+        ==========================================================
+        <div class="slds-var-m-around_medium">
+            <p>
+                <lightning-record-form object-api-name={​​​​​​fetchObjectApiName}​​​​​​ record-id={​​​​​​fetchIdFromParent}​​​​​​ layout-type="Compact">
+                </lightning-record-form>
+            </p>
+        </div>
+    -->
+        <lightning-input onchange={​​​​​​handleChange}​​​​​​ type="number" label="Enter Number in Child"></lightning-input>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+[1:09 PM] Revanth (Guest)
+
+
+
+import {​​​​​​ LightningElement, track, api }​​​​​​ from 'lwc';
+export default class LanceSoft_04_Child extends LightningElement {​​​​​​
+    @track childVar = 'Child Val';
+    @api fromParentVar = 'Parent Val';
+    @api fetchIdFromParent;
+    @api fetchObjectApiName;
+    @api progressVal;
+    handleChange(event){​​​​​​
+        this.progressVal = event.target.value;
+        // Prevents the anchor element from navigating to a URL.
+        event.preventDefault();
+        // Creates the event with the contact ID data.
+        const selectedEvent = new CustomEvent("selectedprogvalue", {​​​​​​ 
+            detail: this.progressVal 
+        }​​​​​​);
+        // Dispatches the event.
+        this.dispatchEvent(selectedEvent);
+    }​​​​​​
+}​​​​​​
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property label="Select Type" name="selectType" type="String" datasource="ParentToChild, ChildToParent"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+
+import { LightningElement, track, api } from 'lwc';
+export default class LanceSoft_03_Parent extends LightningElement {
+    @track parentVar;
+    @track progVal = 10;
+    isParentToChild;
+    isChildToParent;
+    connectedCallback(){
+        if( this.selectType == 'ParentToChild' ){
+            this.isParentToChild = true;
+            this.isChildToParent = false;
+        }
+        if( this.selectType == 'ChildToParent' ){
+            this.isParentToChild = false;
+            this.isChildToParent = true;
+        }
+    }
+    changeHandler(event) {
+        this.parentVar = event.target.value;
+    }
+    handleProgressVal(event){
+        this.progVal = event.detail;
+    }
+    @api selectType;
+    @api recordId;
+    @api objectApiName;
+}
+
+<template>
+    <lightning-card title="Parent Component" icon-name="custom:custom14">
+       
+        <template if:true ={isParentToChild}>
+            <div class="slds-var-m-around_medium">
+                <p>Hello, {parentVar}!</p>
+                <lightning-input label="Name" value={parentVar} onchange={changeHandler}></lightning-input>
+                <c-Lance-Soft-_-04-_-Child from-parent-var={parentVar} fetch-id-from-parent={recordId} fetch-object-api-name={objectApiName}></c-Lance-Soft-_-04-_-Child>
+            </div>
+        </template>
+        <template if:true ={isChildToParent}>
+            <div class="slds-var-m-around_medium">
+                <lightning-progress-bar value={progVal} size="large"></lightning-progress-bar>
+                <c-Lance-Soft-_-04-_-Child onselectedprogvalue={handleProgressVal}></c-Lance-Soft-_-04-_-Child>  
+            </div>
+        </template>
+    </lightning-card>
+</template>
