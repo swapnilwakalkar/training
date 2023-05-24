@@ -1,0 +1,278 @@
+--------------CONDITIONAL RENDERING-----------------------
+You can do this by using the lwc:if, lwc:elseif, and lwc:else directives with nested template tags
+//conditionalButton.js
+import { LightningElement } from 'lwc';
+export default class ConditionalButton extends LightningElement {
+    show = true;
+    handleClick(){
+        this.show = !this.show;
+    }
+}
+//conditionalButton.html
+<template>
+    <lightning-card title="Conditional Rendering with Button" icon-name="utility:hierarchy">
+        <div class="slds-card__body slds-card__body-inner">
+            <p>
+                <template lwc:if={show}>
+                    Peek-a-boo!
+                </template>
+                <template lwc:else>
+                    I'm hiding!
+                </template>
+            </p>
+            <p>
+                <lightning-button onclick={handleClick} variant="neutral" label="Switch"></lightning-button>
+            </p>
+        </div>
+    </lightning-card>
+</template>
+--------------------------------------------------------------------------------------------------------------------------------------
+object creation syntax is referred to as object literal notation. 
+This is a simple declarative way to declare and assign an object all at once. 
+The object is then assigned immediately as part of the same statement
+
+const bike = {
+  gears: 10,
+  currentGear: 3,
+  changeGear: function(direction, changeBy) {
+    if (direction === 'up') {
+      this.currentGear += changeBy;
+    } else {
+      this.currentGear -= changeBy;
+    }
+  }
+}
+console.log(bike.gears); // 10
+console.log(bike.currentGear); //3
+bike.changeGear('up', 1);
+console.log(bike.currentGear); //4
+
+Object literal notation is declarative in nature. 
+The object bike in this example has three members: the gears and currentGear properties and the changeGear function. 
+To reference those members once the object has been created, use dot notation. 
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+New Objects with Constructors
+
+Another way to create objects is to use a constructor. 
+A constructor is a function that contains instructions for establishing the properties of an object when that object is created and assigned. 
+This has an advantage over object literal as you can create many instances of objects that have the same properties. 
+
+
+  this.gears = gears;
+  this.currentGear = startGear;
+}
+Bike.prototype.changeGear = function(direction,changeBy){
+  if(direction === 'up') {
+    this.currentGear += changeBy;
+  } else {
+    this.currentGear -= changeBy;
+  }
+}
+const bike = new Bike(10, 3);
+console.log(bike.gears); // 10
+console.log(bike.currentGear); //3
+bike.changeGear('up', 1);
+console.log(bike.currentGear); //4
+
+In this example Bike is a normal JavaScript function that defines the object. 
+We follow JavaScript convention and capitalize the first word to signal that this function is a constructor. 
+The new keyword is critical. Without new, the this pointer will not point to the object you expect and causes unintended behavior. 
+We revisit this when we cover context in a later unit. 
+
+Notice the assignment of the changeGear function is done using something called prototype. 
+This ensures the function is defined once and shared by all instances created from this constructor. 
+We cover use of prototypes and inheritance later in this unit. 
+
+Syntax-wise, object literal notation and constructors are pretty different. 
+But in each case you still end up with a new object created in memory, with the variable bike as a pointer to that object. 
+With the constructor, you can make lots of Bike objects with the same properties and functions.
+----------------------------------------------------------------------------------------------------------------------------------------------
+https://trailhead.salesforce.com/content/learn/modules/javascript-essentials-salesforce-developers/work-with-obj-class-prototype?trailmix_creator_id=ktain&trailmix_slug=visual-force-skills
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assigning Properties and Functions to Objects
+If you inferred from the bike examples above that there are two possible types of members in an object—properties and functions—you would be correct.  
+
+Properties come in three basic shapes.
+-->Primitives
+-->Objects
+-->Arrays
+
+At the time of the writing of this module, there are seven primitive types in JavaScript: 
+string, number, Boolean, null, undefined, symbol, and bigint. Primitive types are immutable. 
+When a variable is a primitive type, it’s passed by value when assigned. That is to say, each time a primitive is assigned, a copy of the value is made and assigned to the new variable.  
+
+Note;;--
+It is highly likely new primitive types may be added in the future.
+As the JavaScript community identifies new needs and use cases, proposals are made to extend the language, which, if adopted, will lead to fundamental changes like this.
+Pretty much anything that isn’t a primitive in JavaScript is an object. In object literal notation, object properties are denoted by curly brackets. 
+
+Arrays themselves are also implemented as objects in JavaScript. 
+Arrays can be created with the Array() constructor function or with literal notation denoted by square brackets. 
+
+Functions have their own unit in this module, so we won’t talk about them here, but based on the above, 
+let’s take another pass at defining a more complex bike object using object literal notation.
+
+const bike = {
+  frontGearIndex: 0,
+  rearGearIndex: 0,
+  transmission: {
+    frontGearTeeth: [30,45],
+    rearGearTeeth: [11,13,15,17,19,21,24,28,32,36]
+  },
+  calculateGearRatio: function() {
+    let front = this.transmission.frontGearTeeth[this.frontGearIndex],
+        rear = this.transmission.rearGearTeeth[this.rearGearIndex];
+    return (front / rear);
+  },
+  changeGear: function(frontOrRear, newValue) {
+    if (frontOrRear === 'front') {
+      this.frontGearIndex = newValue;
+    } else {
+      this.rearGearIndex = newValue;
+    }
+  }
+};
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Referencing Properties by Bracket Syntax
+
+Referencing an object member is most commonly done with dot notation. For instance, in the previous example, we reference the object’s properties and functions as follows.
+
+bike.frontGearIndex
+bike.transmission.frontGearTeeth
+bike.calculateGearRatio()
+In dot notation, there are strict rules for the names of properties. However, JavaScript also allows for another syntax called bracket notation. The members above would be referenced as follows in bracket notation.
+
+bike["frontGearIndex"]
+bike["transmission"]["frontGearTeeth"]
+bike["calculateGearRatio"]()
+While it requires more typing, bracket notation has two benefits. You can name your property or function anything you want, and because it’s a string, you can pass a property or function name through a variable and call it.
+
+Let's see this at work by reimagining the changeGear function. We now use four functions to define shifting the front and rear gears either up or down. In the changeGear function, we construct the name of the function to call based on String parameters and then call it. 
+
+changeGear: function(frontOrRear, upOrDown) {
+  let shiftFunction = frontOrRear + upOrDown;
+  this[shiftFunction]();
+},
+frontUp: function(){
+  this.frontGearIndex += 1;
+},
+frontDown: function(){
+  this.frontGearIndex -= 1;
+},
+rearUp: function(){
+  this.rearGearIndex += 1;
+},
+rearDown: function(){
+  this.rearGearIndex -= 1;
+}
+
+add these to our bike object, and we can see them at work. 
+
+console.log(bike.calculateGearRatio()); // 2.727272727
+//Calls the frontUp() function
+bike.changeGear("front", "Up");
+console.log(bike.calculateGearRatio()); // 4.090909091
+//calls the rearUp() function
+bike.changeGear("rear", "Up");
+console.log(bike.calculateGearRatio()); // 3.461538461
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+Objects and Inheritance
+
+Despite not having classes as defined by classical languages, JavaScript still has an inheritance model, called prototype inheritance. 
+A prototype is, in fact, another object. It sits in memory, and defines properties or functions that other objects inherit if they share the same prototype. 
+Traditionally in JavaScript objects share the same prototype by sharing the same constructor function. Remember the Bike constructor. 
+We assign the changeGear function to something called prototype. 
+
+function Bike(gears, startGear) {
+  this.gears = gears;
+  this.currentGear = startGear;
+}
+Bike.prototype.changeGear = function(direction, changeBy) {
+  if (direction === 'up') {
+    this.currentGear += changeBy;
+  } else {
+    this.currentGear -= changeBy;
+  }
+}
+This way every object created from Bike inherits the changeGear function. 
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Classes and JavaScript
+If you read the word "class" and got a warm fuzzy feeling, thinking that you’d be looking at something that creates true class-based inheritance, prepare to be disappointed. 
+Still, the class keyword in JavaScript is a nice bit of syntactic sugar to address the complexities of prototype inheritance using constructor functions. 
+Under the covers, the engine is still using Object.create and there is still no class (in the object-oriented sense), 
+just that in-memory prototype object that is the actual source of inheritance. 
+
+The good news is that it does read a lot more like code from Java or C#, with a few JavaScript-specific things to take into account. 
+
+Note
+
+While used by Lightning Web Components, multilevel prototype chains including class syntax are beyond this module. 
+See the resources links at the end of this unit for more details on working with newer features of JavaScript objects. 
+We strongly recommend taking the other module in this trail, Modern JavaScript Development, which has an entire unit on Classes
+While we won’t delve into too many details of JavaScript Classes here, for academic purposes it is good to see a version of the bike object implemented with class syntax. 
+
+class Bike {
+    constructor(gears, startGear){
+        this.gears = gears;
+        this.currentGear = startGear;
+    }
+    changeGear(direction, changeBy) {
+        if (direction === 'up') {
+            this.currentGear += changeBy;
+        } else {
+            this.currentGear -= changeBy;
+        }
+    }
+}
+const bike = new Bike(10, 5);
+console.log(bike.currentGear); // 5
+bike.changeGear('up', 2);
+console.log(bike.currentGear); // 7
+
+As you can see, the syntax looks a lot more like a class in Java or Apex. 
+A clear difference is that the constructor function is always named constructor. 
+An important feature is that functions and attributes automatically belong to the prototype chain without having to directly reference Object.prototype. 
+This also simplifies creating multilevel prototype inheritance. 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Classes and Lightning Web Components
+
+Lightning Web components take advantage of many of the modern improvements to JavaScript, most notably, the use of class syntax. Components are typically defined by a JavaScript class that extends another class called LightningElement. Here’s what it looks like: 
+
+import { LightningElement } from lwc;
+export default class MyComponent extends LightningElement {
+    myProperty;
+    myFunction() {
+        console.log(this.myProperty);
+    }
+} 
+The functionality of a Lightning web component is defined in a JavaScript class. 
+This example also uses some syntax we haven’t addressed yet regarding modules (import and export).
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+Take Action with Events and Functions
+
+When it comes to making stuff happen in JavaScript it’s all about events and functions.
+
+With JavaScript in the browser, events are all over the place. 
+Parts of the DOM emit events that correspond to what that DOM object does. 
+-->Buttons have click events, 
+-->input and select controls have change events, 
+-->and virtually every part of the visible DOM has events for when the mouse cursor interacts with it (like passing over it). 
+-->The window object even has event handlers for handling device events (like detecting the motion of mobile devices). 
+
+To make something happen in a web page, functions get assigned to these events as event handlers. 
+
+To reiterate, DOM events and other events related to the browser environment are not actually part of the core JavaScript language, 
+rather they are APIs that are implemented for JavaScript in the browser. 
+
+When an event is emitted, a message is created in the engine. 
+It is these messages that are placed in the event queue we talked about earlier.
+Once the stack is free, the event handler is invoked. 
+This creates what’s referred to as a frame on the call stack. 
+Each time one function invokes another, a new frame is added to the stack, and when complete, 
+it is popped off the stack, until finally the frame for the actual event handler is popped, the stack is empty, and we start all over again. 
