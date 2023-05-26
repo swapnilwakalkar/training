@@ -487,3 +487,5 @@ This is the event handler.
         this.text = event.target.value;
     }
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+context, scope, closure, hoisting, asynchronous javascript
+
